@@ -1,0 +1,29 @@
+# Environment & Secrets
+.env
+*.key
+*.pem
+*.secret
+client_secrets.json
+gcs_key.json
+gcs_key.json.bak
+*credentials*.json
+*_key.json
+
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Database
+*.db
+
+# Logs
+logs/
+
+# OS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/

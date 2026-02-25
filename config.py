@@ -43,9 +43,9 @@ class Config:
     GCS_CREDENTIALS_JSON = os.getenv("GCS_CREDENTIALS_JSON", "")
     GCS_FOLDER_PREFIX = os.getenv("GCS_FOLDER_PREFIX", "reels")
 
-    # Folders (relative to project root)
-    INPUT_FOLDER = PROJECT_DIR / os.getenv("INPUT_FOLDER", "input")
-    PROCESSED_FOLDER = PROJECT_DIR / os.getenv("PROCESSED_FOLDER", "processed")
+    # Folders (prefer SERVICE_DIR since it's a standalone repo now)
+    INPUT_FOLDER = SERVICE_DIR / os.getenv("INPUT_FOLDER", "input")
+    PROCESSED_FOLDER = SERVICE_DIR / os.getenv("PROCESSED_FOLDER", "processed")
 
     # Schedule (IST times as HH:MM)
     SCHEDULE_TIME_1 = os.getenv("SCHEDULE_TIME_1", "18:00")  # 6 PM IST

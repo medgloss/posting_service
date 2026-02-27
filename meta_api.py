@@ -134,7 +134,9 @@ class MetaAPI:
         url = f"{self.BASE_URL}/{self.ig_account_id}/media"
         params = {
             "media_type": "STORIES",
+            "upload_type": "resumable",
             "video_url": video_url,
+            "share_to_feed": "false",
             "access_token": token,
         }
         # Instagram Stories API doesn't support caption field directly, 

@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 class MetaAPI:
     """Handles all Meta Graph API interactions and GCS uploads."""
 
-    API_VERSION = "v22.0"
+    API_VERSION = "v21.0"
     BASE_URL = f"https://graph.facebook.com/{API_VERSION}"
 
     def __init__(self):
@@ -159,17 +159,14 @@ class MetaAPI:
         """Poll container status until FINISHED, ERROR, or TIMEOUT."""
         token = self.page_access_token or self.access_token
         url = f"{self.BASE_URL}/{container_id}"
-        params = {"fields": "status_code,status,media_type,media_product_type", "access_token": token}
+        params = {"fields": "status_code,status", "access_token": token}
         for attempt in range(max_attempts):
             try:
                 response = requests.get(url, params=params)
                 data = response.json()
                 status = data.get("status_code")
-                media_type = data.get("media_type", "unknown")
-                product_type = data.get("media_product_type", "unknown")
                 logger.info(
-                    f"Container {container_id} status: {status} "
-                    f"(type={media_type}, product={product_type}, attempt {attempt+1}/{max_attempts})"
+                    f"Container {container_id} status: {status} (attempt {attempt+1}/{max_attempts})"
                 )
                 if status == "FINISHED":
                     return "FINISHED"

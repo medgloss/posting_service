@@ -106,12 +106,13 @@ class MetaAPI:
 
     def create_ig_reel_container(self, video_url: str, caption: str) -> Optional[str]:
         """Create an Instagram Reel container."""
+        token = self.page_access_token or self.access_token
         url = f"{self.BASE_URL}/{self.ig_account_id}/media"
         params = {
             "media_type": "REELS",
             "video_url": video_url,
             "caption": caption,
-            "access_token": self.access_token,
+            "access_token": token,
         }
         try:
             response = requests.post(url, params=params)
@@ -129,11 +130,12 @@ class MetaAPI:
         self, video_url: str, caption: str = ""
     ) -> Optional[str]:
         """Create an Instagram Story container. Caption = title only."""
+        token = self.page_access_token or self.access_token
         url = f"{self.BASE_URL}/{self.ig_account_id}/media"
         params = {
             "media_type": "STORIES",
             "video_url": video_url,
-            "access_token": self.access_token,
+            "access_token": token,
         }
         # Instagram Stories API doesn't support caption field directly, 
         # but we pass it for logging and potential future use
@@ -155,8 +157,9 @@ class MetaAPI:
         self, container_id: str, max_attempts: int = 30
     ) -> str:
         """Poll container status until FINISHED, ERROR, or TIMEOUT."""
+        token = self.page_access_token or self.access_token
         url = f"{self.BASE_URL}/{container_id}"
-        params = {"fields": "status_code,status", "access_token": self.access_token}
+        params = {"fields": "status_code,status", "access_token": token}
         for attempt in range(max_attempts):
             try:
                 response = requests.get(url, params=params)
@@ -177,17 +180,19 @@ class MetaAPI:
 
     def publish_ig_media(self, container_id: str) -> bool:
         """Publish a prepared Instagram media container."""
+        token = self.page_access_token or self.access_token
         url = f"{self.BASE_URL}/{self.ig_account_id}/media_publish"
-        params = {"creation_id": container_id, "access_token": self.access_token}
+        params = {"creation_id": container_id, "access_token": token}
         try:
             response = requests.post(url, params=params)
-            response.raise_for_status()
+            if response.status_code != 200:
+                logger.error(f"Failed to publish IG media: HTTP {response.status_code}")
+                logger.error(f"Response body: {response.text}")
+                return False
             logger.info(f"IG media published: {response.json()}")
             return True
-        except requests.exceptions.HTTPError as e:
+        except Exception as e:
             logger.error(f"Failed to publish IG media: {e}")
-            if e.response:
-                logger.error(f"Response: {e.response.text}")
             return False
 
     # ── Facebook ─────────────────────────────────────────────────

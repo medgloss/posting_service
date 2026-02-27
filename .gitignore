@@ -8,6 +8,7 @@ gcs_key.json
 gcs_key.json.bak
 *credentials*.json
 *_key.json
+.venv/
 
 # Python
 venv/

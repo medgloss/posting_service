@@ -146,6 +146,18 @@ class Database:
 
         return None
 
+    def get_published_platforms(self, post_id: int) -> set:
+        """Get the set of platforms already published for a post."""
+        conn = self._get_conn()
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT platform FROM post_status WHERE post_id = ? AND status = 'PUBLISHED'",
+            (post_id,),
+        )
+        platforms = {row[0] for row in cursor.fetchall()}
+        conn.close()
+        return platforms
+
     def update_status(self, post_id: int, platform: str, status: str, error_message: str = None):
         """Update or insert post status for a platform."""
         conn = self._get_conn()

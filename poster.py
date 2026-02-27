@@ -107,9 +107,14 @@ class Poster:
 
     def post_to_platforms(self, post_id: int, folder_name: str, video_path: str,
                           reel_caption: str, story_caption: str, duration: float) -> Dict[str, bool]:
-        """Post to all enabled platforms."""
+        """Post to all enabled platforms, skipping already-published ones."""
         video_path = Path(video_path)
         results = {}
+
+        # Get already-published platforms to avoid duplicates on retry
+        already_published = self.db.get_published_platforms(post_id)
+        if already_published:
+            logger.info(f"Already published on: {', '.join(already_published)} — skipping these")
 
         # Verify file exists
         if not video_path.exists():
@@ -134,7 +139,10 @@ class Poster:
             return results
 
         # ── Instagram Reel ──
-        if Config.IG_ENABLED and Config.IG_POST_REEL and duration <= 180:
+        if "ig_reel" in already_published:
+            logger.info("⏭ Skipping Instagram Reel (already published)")
+            results["ig_reel"] = True
+        elif Config.IG_ENABLED and Config.IG_POST_REEL and duration <= 180:
             logger.info(f"▶ Posting to Instagram Reel (duration: {duration:.1f}s)")
             logger.info(f"  Caption: {reel_caption[:100]}...")
             container_id = self.api.create_ig_reel_container(video_url, reel_caption)
@@ -150,7 +158,10 @@ class Poster:
             self.db.update_status(post_id, "ig_reel", "SKIPPED", "Duration > 180s")
 
         # ── Instagram Story (only if <= 60s) ──
-        if Config.IG_ENABLED and Config.IG_POST_STORY and duration <= 60:
+        if "ig_story" in already_published:
+            logger.info("⏭ Skipping Instagram Story (already published)")
+            results["ig_story"] = True
+        elif Config.IG_ENABLED and Config.IG_POST_STORY and duration <= 60:
             logger.info(f"▶ Posting to Instagram Story (duration: {duration:.1f}s)")
             logger.info(f"  Story title: {story_caption[:80]}")
             container_id = self.api.create_ig_story_container(video_url, story_caption)
@@ -166,7 +177,10 @@ class Poster:
             self.db.update_status(post_id, "ig_story", "SKIPPED", "Duration > 60s")
 
         # ── Facebook Reel ──
-        if Config.FB_ENABLED and Config.FB_POST_REEL and duration <= 180:
+        if "fb_reel" in already_published:
+            logger.info("⏭ Skipping Facebook Reel (already published)")
+            results["fb_reel"] = True
+        elif Config.FB_ENABLED and Config.FB_POST_REEL and duration <= 180:
             logger.info(f"▶ Posting to Facebook Reel (duration: {duration:.1f}s)")
             logger.info(f"  Caption: {reel_caption[:100]}...")
             success = self.api.create_fb_reel(video_url, reel_caption)
@@ -177,7 +191,10 @@ class Poster:
             self.db.update_status(post_id, "fb_reel", "SKIPPED", "Duration > 180s")
 
         # ── Facebook Feed ──
-        if Config.FB_ENABLED and Config.FB_POST_FEED:
+        if "fb_feed" in already_published:
+            logger.info("⏭ Skipping Facebook Feed (already published)")
+            results["fb_feed"] = True
+        elif Config.FB_ENABLED and Config.FB_POST_FEED:
             logger.info(f"▶ Posting to Facebook Feed")
             logger.info(f"  Caption: {reel_caption[:100]}...")
             success = self.api.create_fb_feed_video(video_url, reel_caption)
